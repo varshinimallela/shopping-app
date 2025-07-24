@@ -1,0 +1,2014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PastelShop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pastel: {
+                            pink: '#FFD1DC',
+                            blue: '#BFEFFF',
+                            yellow: '#FFFACD',
+                            green: '#CCFFCC',
+                            purple: '#E6E6FA',
+                            peach: '#FFDAB9'
+                        }
+                    },
+                    fontFamily: {
+                        quicksand: ['Quicksand', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #FFF5F8;
+            overflow-x: hidden;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .product-card {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(255, 182, 193, 0.3);
+        }
+
+        .heart-btn {
+            transition: all 0.3s ease;
+        }
+
+        .heart-btn:hover, .heart-btn.active {
+            transform: scale(1.2);
+        }
+
+        .heart-btn.active {
+            color: #FF6B8A;
+        }
+
+        .category-btn.active {
+            background-color: #FFD1DC;
+            color: white;
+        }
+
+        .tab-btn.active {
+            background-color: #FFD1DC;
+            color: white;
+        }
+
+        .price-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #FFD1DC;
+            cursor: pointer;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #FFD1DC;
+            border-radius: 50%;
+            animation: fall 3s ease-in infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .star {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .star:hover, .star.active {
+            color: #FFD700;
+            transform: scale(1.2);
+        }
+
+        .modal {
+            transition: all 0.3s ease;
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #FF6B8A;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: #FFD1DC;
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #FFF5F8;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #FFD1DC;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FF6B8A;
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <span id="notification-message"></span>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-md py-4 px-6 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <h1 class="text-3xl font-bold text-pink-500">
+                    <span class="text-pastel-pink">Pastel</span>
+                    <span class="text-pastel-blue">Shop</span>
+                    <span class="text-xl">✨</span>
+                </h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div class="relative">
+                    <button id="wishlist-btn" class="text-gray-600 hover:text-pink-500 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </button>
+                    <div id="wishlist-badge" class="badge hidden">0</div>
+                </div>
+                <div class="relative">
+                    <button id="cart-btn" class="text-gray-600 hover:text-pink-500 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </button>
+                    <div id="cart-badge" class="badge hidden">0</div>
+                </div>
+                <div id="user-section">
+                    <button id="login-btn" class="bg-pastel-pink hover:bg-pink-400 text-white px-4 py-2 rounded-full transition">Login</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Home Page -->
+        <div id="home-page" class="page active">
+            <div class="mb-8">
+                <div id="welcome-message" class="text-center mb-8 hidden">
+                    <h2 class="text-2xl font-semibold text-gray-700">Welcome back, <span id="username-display" class="text-pink-500"></span>! 🌸</h2>
+                </div>
+                
+                <div class="bg-gradient-to-r from-pastel-pink to-pastel-purple rounded-2xl p-8 text-center shadow-lg mb-10">
+                    <h2 class="text-4xl font-bold text-white mb-4">Welcome to PastelShop! 🎀</h2>
+                    <p class="text-white text-lg mb-6">Discover our adorable collection of pastel-themed products</p>
+                    <div class="flex justify-center">
+                        <button id="shop-now-btn" class="bg-white text-pink-500 hover:bg-pink-100 px-6 py-3 rounded-full font-bold transition transform hover:scale-105">Shop Now</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories and Filters -->
+            <div class="flex flex-col lg:flex-row gap-6 mb-8">
+                <!-- Categories -->
+                <div class="lg:w-1/4 bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-xl font-bold text-gray-700 mb-4">Categories</h3>
+                    <div class="space-y-2">
+                        <button class="category-btn active w-full text-left px-4 py-2 rounded-lg transition" data-category="all">All Products</button>
+                        <button class="category-btn w-full text-left px-4 py-2 rounded-lg transition" data-category="clothing">Clothing</button>
+                        <button class="category-btn w-full text-left px-4 py-2 rounded-lg transition" data-category="accessories">Accessories</button>
+                        <button class="category-btn w-full text-left px-4 py-2 rounded-lg transition" data-category="stationery">Stationery</button>
+                        <button class="category-btn w-full text-left px-4 py-2 rounded-lg transition" data-category="home-decor">Home Decor</button>
+                    </div>
+
+                    <div class="mt-8">
+                        <h3 class="text-xl font-bold text-gray-700 mb-4">Price Range</h3>
+                        <input type="range" id="price-range" min="0" max="100" value="100" class="price-slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between mt-2">
+                            <span>$0</span>
+                            <span id="price-value">$100</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-8">
+                        <h3 class="text-xl font-bold text-gray-700 mb-4">Sort By</h3>
+                        <select id="sort-select" class="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:border-pink-300">
+                            <option value="name-asc">Name (A-Z)</option>
+                            <option value="name-desc">Name (Z-A)</option>
+                            <option value="price-asc">Price (Low to High)</option>
+                            <option value="price-desc">Price (High to Low)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="lg:w-3/4">
+                    <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Products will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Detail Page -->
+        <div id="product-detail-page" class="page">
+            <button id="back-to-shop" class="flex items-center text-pink-500 hover:text-pink-700 mb-6 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                Back to Shop
+            </button>
+
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/2 p-8">
+                        <div id="product-image" class="h-80 bg-pastel-pink rounded-xl flex items-center justify-center">
+                            <!-- Product image will be inserted here -->
+                        </div>
+                    </div>
+                    <div class="md:w-1/2 p-8">
+                        <h2 id="product-title" class="text-3xl font-bold text-gray-800 mb-4"></h2>
+                        <div class="flex items-center mb-4">
+                            <div id="product-rating" class="flex text-yellow-400 mr-2">
+                                <!-- Stars will be inserted here -->
+                            </div>
+                            <span id="review-count" class="text-gray-500"></span>
+                        </div>
+                        <p id="product-price" class="text-2xl font-bold text-pink-500 mb-4"></p>
+                        <p id="product-description" class="text-gray-600 mb-6"></p>
+                        
+                        <div class="flex items-center space-x-4 mb-6">
+                            <div class="flex items-center border border-gray-300 rounded-lg">
+                                <button id="decrease-qty" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-l-lg">-</button>
+                                <input id="product-qty" type="number" min="1" value="1" class="w-12 text-center border-none focus:outline-none">
+                                <button id="increase-qty" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-r-lg">+</button>
+                            </div>
+                            <button id="add-to-cart-detail" class="bg-pastel-pink hover:bg-pink-400 text-white px-6 py-2 rounded-full transition">
+                                Add to Cart
+                            </button>
+                            <button id="add-to-wishlist-detail" class="heart-btn text-gray-400 hover:text-pink-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 pt-6">
+                            <p class="text-sm text-gray-500">Category: <span id="product-category"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reviews Section -->
+                <div class="p-8 border-t border-gray-200">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Reviews</h3>
+                    
+                    <!-- Add Review Form -->
+                    <div id="review-form" class="mb-8 bg-pastel-yellow bg-opacity-30 p-6 rounded-xl">
+                        <h4 class="text-lg font-semibold mb-4">Write a Review</h4>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Rating</label>
+                            <div class="flex space-x-1">
+                                <span class="star text-gray-300 text-2xl" data-value="1">★</span>
+                                <span class="star text-gray-300 text-2xl" data-value="2">★</span>
+                                <span class="star text-gray-300 text-2xl" data-value="3">★</span>
+                                <span class="star text-gray-300 text-2xl" data-value="4">★</span>
+                                <span class="star text-gray-300 text-2xl" data-value="5">★</span>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="review-text" class="block text-gray-700 mb-2">Your Review</label>
+                            <textarea id="review-text" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300" placeholder="Share your thoughts about this product..."></textarea>
+                        </div>
+                        <button id="submit-review" class="bg-pastel-pink hover:bg-pink-400 text-white px-6 py-2 rounded-full transition">Submit Review</button>
+                    </div>
+                    
+                    <!-- Reviews List -->
+                    <div id="reviews-list" class="space-y-6">
+                        <!-- Reviews will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart Page -->
+        <div id="cart-page" class="page">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Your Shopping Cart 🛒</h2>
+            
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-2/3">
+                    <div id="cart-items" class="space-y-4">
+                        <!-- Cart items will be dynamically inserted here -->
+                    </div>
+                    
+                    <div id="empty-cart-message" class="hidden text-center py-12">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <h3 class="text-xl font-medium text-gray-500">Your cart is empty</h3>
+                        <p class="text-gray-400 mb-6">Looks like you haven't added any items to your cart yet.</p>
+                        <button id="continue-shopping" class="bg-pastel-pink hover:bg-pink-400 text-white px-6 py-3 rounded-full transition">Continue Shopping</button>
+                    </div>
+                </div>
+                
+                <div class="lg:w-1/3">
+                    <div id="order-summary" class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Order Summary</h3>
+                        
+                        <div class="space-y-3 mb-6">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Subtotal</span>
+                                <span id="subtotal" class="font-medium">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Tax (10%)</span>
+                                <span id="tax" class="font-medium">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Shipping</span>
+                                <span id="shipping" class="font-medium">$5.00</span>
+                            </div>
+                            <div class="border-t border-gray-200 pt-3 flex justify-between">
+                                <span class="font-bold">Total</span>
+                                <span id="total" class="font-bold text-pink-500">$0.00</span>
+                            </div>
+                        </div>
+                        
+                        <button id="checkout-btn" class="w-full bg-pastel-pink hover:bg-pink-400 text-white py-3 rounded-full font-medium transition">
+                            Proceed to Checkout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wishlist Page -->
+        <div id="wishlist-page" class="page">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Your Wishlist 💖</h2>
+            
+            <div id="wishlist-items" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Wishlist items will be dynamically inserted here -->
+            </div>
+            
+            <div id="empty-wishlist-message" class="hidden text-center py-12">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <h3 class="text-xl font-medium text-gray-500">Your wishlist is empty</h3>
+                <p class="text-gray-400 mb-6">Add items you love to your wishlist by clicking the heart icon.</p>
+                <button id="continue-shopping-wishlist" class="bg-pastel-pink hover:bg-pink-400 text-white px-6 py-3 rounded-full transition">Continue Shopping</button>
+            </div>
+        </div>
+
+        <!-- Checkout Page -->
+        <div id="checkout-page" class="page">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Checkout 🛍️</h2>
+            
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-2/3">
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Shipping Information</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="first-name" class="block text-gray-700 mb-2">First Name</label>
+                                <input type="text" id="first-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                            </div>
+                            <div>
+                                <label for="last-name" class="block text-gray-700 mb-2">Last Name</label>
+                                <input type="text" id="last-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                            </div>
+                            <div>
+                                <label for="email" class="block text-gray-700 mb-2">Email</label>
+                                <input type="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                            </div>
+                            <div>
+                                <label for="phone" class="block text-gray-700 mb-2">Phone</label>
+                                <input type="tel" id="phone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="address" class="block text-gray-700 mb-2">Address</label>
+                                <input type="text" id="address" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                            </div>
+                            <div>
+                                <label for="city" class="block text-gray-700 mb-2">City</label>
+                                <input type="text" id="city" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                            </div>
+                            <div>
+                                <label for="zip" class="block text-gray-700 mb-2">ZIP Code</label>
+                                <input type="text" id="zip" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Payment Method</h3>
+                        <p class="text-gray-500 italic mb-4">This is a demo checkout. No real payment will be processed.</p>
+                        
+                        <div class="flex space-x-4 mb-6">
+                            <div class="flex-1 border border-gray-200 rounded-lg p-4 cursor-pointer bg-pastel-pink bg-opacity-10">
+                                <div class="flex items-center">
+                                    <input type="radio" id="credit-card" name="payment-method" checked class="mr-2">
+                                    <label for="credit-card" class="font-medium">Credit Card</label>
+                                </div>
+                            </div>
+                            <div class="flex-1 border border-gray-200 rounded-lg p-4 cursor-pointer">
+                                <div class="flex items-center">
+                                    <input type="radio" id="paypal" name="payment-method" class="mr-2">
+                                    <label for="paypal" class="font-medium">PayPal</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="credit-card-form">
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2">Card Information</label>
+                                <div class="border border-gray-300 rounded-lg p-3 bg-gray-100">
+                                    <p class="text-gray-500">Demo Card Information (not editable)</p>
+                                    <p class="font-mono">**** **** **** 1234</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Expiry Date</label>
+                                    <div class="border border-gray-300 rounded-lg p-3 bg-gray-100">
+                                        <p class="font-mono">12/25</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-2">CVC</label>
+                                    <div class="border border-gray-300 rounded-lg p-3 bg-gray-100">
+                                        <p class="font-mono">***</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="lg:w-1/3">
+                    <div class="bg-white rounded-xl shadow-md p-6 sticky top-24">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Order Summary</h3>
+                        
+                        <div id="checkout-items" class="space-y-4 mb-6">
+                            <!-- Checkout items will be dynamically inserted here -->
+                        </div>
+                        
+                        <div class="border-t border-gray-200 pt-4 space-y-3 mb-6">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Subtotal</span>
+                                <span id="checkout-subtotal" class="font-medium">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Tax (10%)</span>
+                                <span id="checkout-tax" class="font-medium">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Shipping</span>
+                                <span id="checkout-shipping" class="font-medium">$5.00</span>
+                            </div>
+                            <div class="border-t border-gray-200 pt-3 flex justify-between">
+                                <span class="font-bold">Total</span>
+                                <span id="checkout-total" class="font-bold text-pink-500">$0.00</span>
+                            </div>
+                        </div>
+                        
+                        <button id="place-order-btn" class="w-full bg-pastel-pink hover:bg-pink-400 text-white py-3 rounded-full font-medium transition">
+                            Place Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Confirmation Page -->
+        <div id="order-confirmation-page" class="page">
+            <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-8 text-center">
+                <div class="mb-6">
+                    <div class="w-20 h-20 bg-pastel-green rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Thank You for Your Order! 🎉</h2>
+                    <p class="text-gray-600 mb-4">Your order has been placed successfully.</p>
+                    <p class="text-gray-600">Order #: <span id="order-number" class="font-medium"></span></p>
+                </div>
+                
+                <div class="border-t border-b border-gray-200 py-6 mb-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Order Summary</h3>
+                    
+                    <div id="confirmation-items" class="space-y-4 mb-6">
+                        <!-- Order items will be dynamically inserted here -->
+                    </div>
+                    
+                    <div class="space-y-2 text-right">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Subtotal</span>
+                            <span id="confirmation-subtotal" class="font-medium">$0.00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Tax (10%)</span>
+                            <span id="confirmation-tax" class="font-medium">$0.00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Shipping</span>
+                            <span id="confirmation-shipping" class="font-medium">$5.00</span>
+                        </div>
+                        <div class="border-t border-gray-200 pt-2 flex justify-between">
+                            <span class="font-bold">Total</span>
+                            <span id="confirmation-total" class="font-bold text-pink-500">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <button id="print-order" class="bg-pastel-blue hover:bg-blue-300 text-white px-6 py-3 rounded-full transition flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Print Order
+                    </button>
+                    <button id="download-pdf" class="bg-pastel-purple hover:bg-purple-300 text-white px-6 py-3 rounded-full transition flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download PDF
+                    </button>
+                    <button id="continue-shopping-confirmation" class="bg-pastel-pink hover:bg-pink-400 text-white px-6 py-3 rounded-full transition flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Continue Shopping
+                    </button>
+                </div>
+            </div>
+            
+            <div id="confetti-container"></div>
+        </div>
+
+        <!-- User Dashboard Page -->
+        <div id="dashboard-page" class="page">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">My Dashboard 👤</h2>
+            
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/4">
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <div class="text-center mb-6">
+                            <div class="w-24 h-24 bg-pastel-pink rounded-full flex items-center justify-center mx-auto mb-4 text-white text-3xl font-bold">
+                                <span id="user-initials"></span>
+                            </div>
+                            <h3 id="dashboard-username" class="text-xl font-bold text-gray-800"></h3>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <button class="tab-btn active w-full text-left px-4 py-2 rounded-lg transition" data-tab="profile">Profile</button>
+                            <button class="tab-btn w-full text-left px-4 py-2 rounded-lg transition" data-tab="orders">Orders</button>
+                            <button class="tab-btn w-full text-left px-4 py-2 rounded-lg transition" data-tab="wishlist">Wishlist</button>
+                            <button id="logout-btn" class="w-full text-left px-4 py-2 rounded-lg transition text-red-500 hover:bg-red-50">Logout</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="lg:w-3/4">
+                    <!-- Profile Tab -->
+                    <div id="profile-tab" class="dashboard-tab active bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Profile Information</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="profile-username" class="block text-gray-700 mb-2">Username</label>
+                                <input type="text" id="profile-username" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                            </div>
+                            <div>
+                                <label for="profile-email" class="block text-gray-700 mb-2">Email</label>
+                                <input type="email" id="profile-email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                            </div>
+                            <div>
+                                <label for="profile-first-name" class="block text-gray-700 mb-2">First Name</label>
+                                <input type="text" id="profile-first-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                            </div>
+                            <div>
+                                <label for="profile-last-name" class="block text-gray-700 mb-2">Last Name</label>
+                                <input type="text" id="profile-last-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <button id="save-profile" class="bg-pastel-pink hover:bg-pink-400 text-white px-6 py-2 rounded-full transition">
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Orders Tab -->
+                    <div id="orders-tab" class="dashboard-tab hidden bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Order History</h3>
+                        
+                        <div id="orders-list" class="space-y-6">
+                            <!-- Orders will be dynamically inserted here -->
+                        </div>
+                        
+                        <div id="empty-orders-message" class="hidden text-center py-12">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <h3 class="text-xl font-medium text-gray-500">No orders yet</h3>
+                            <p class="text-gray-400 mb-6">You haven't placed any orders yet.</p>
+                            <button id="start-shopping-orders" class="bg-pastel-pink hover:bg-pink-400 text-white px-6 py-3 rounded-full transition">Start Shopping</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Wishlist Tab -->
+                    <div id="wishlist-tab" class="dashboard-tab hidden bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">My Wishlist</h3>
+                        
+                        <div id="dashboard-wishlist-items" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Wishlist items will be dynamically inserted here -->
+                        </div>
+                        
+                        <div id="empty-dashboard-wishlist-message" class="hidden text-center py-12">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                            <h3 class="text-xl font-medium text-gray-500">Your wishlist is empty</h3>
+                            <p class="text-gray-400 mb-6">Add items you love to your wishlist by clicking the heart icon.</p>
+                            <button id="start-shopping-wishlist" class="bg-pastel-pink hover:bg-pink-400 text-white px-6 py-3 rounded-full transition">Start Shopping</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white py-8 px-6 mt-12">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <h2 class="text-2xl font-bold">
+                        <span class="text-pastel-pink">Pastel</span>
+                        <span class="text-pastel-blue">Shop</span>
+                        <span>✨</span>
+                    </h2>
+                    <p class="text-gray-500 mt-2">Your favorite pastel-themed store</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-pink-500 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-pink-500 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-pink-500 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 mt-8 pt-8 text-center text-gray-500">
+                <p>&copy; 2023 PastelShop. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl p-8 max-w-md w-full mx-4 transform transition-all">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Welcome Back! ✨</h3>
+                <button id="close-login-modal" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="mb-6">
+                <div class="flex border-b border-gray-200">
+                    <button id="login-tab-btn" class="flex-1 py-2 font-medium text-center border-b-2 border-pastel-pink">Login</button>
+                    <button id="signup-tab-btn" class="flex-1 py-2 font-medium text-center text-gray-500">Sign Up</button>
+                </div>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-username" class="block text-gray-700 mb-2">Username</label>
+                    <input type="text" id="login-username" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-gray-700 mb-2">Password</label>
+                    <input type="password" id="login-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember-me" class="mr-2">
+                        <label for="remember-me" class="text-sm text-gray-600">Remember me</label>
+                    </div>
+                    <a href="#" class="text-sm text-pastel-pink hover:text-pink-500">Forgot password?</a>
+                </div>
+                <button id="login-submit" class="w-full bg-pastel-pink hover:bg-pink-400 text-white py-2 rounded-full font-medium transition">
+                    Login
+                </button>
+            </div>
+            
+            <!-- Signup Form -->
+            <div id="signup-form" class="space-y-4 hidden">
+                <div>
+                    <label for="signup-username" class="block text-gray-700 mb-2">Username</label>
+                    <input type="text" id="signup-username" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                </div>
+                <div>
+                    <label for="signup-email" class="block text-gray-700 mb-2">Email</label>
+                    <input type="email" id="signup-email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                </div>
+                <div>
+                    <label for="signup-password" class="block text-gray-700 mb-2">Password</label>
+                    <input type="password" id="signup-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                </div>
+                <div>
+                    <label for="signup-confirm-password" class="block text-gray-700 mb-2">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-pink-300">
+                </div>
+                <button id="signup-submit" class="w-full bg-pastel-pink hover:bg-pink-400 text-white py-2 rounded-full font-medium transition">
+                    Sign Up
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample product data
+        const products = [
+            {
+                id: 1,
+                name: "Pastel Pink Sweater",
+                price: 39.99,
+                category: "clothing",
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="w-full h-full">
+                    <rect width="200" height="200" fill="#FFD1DC" />
+                    <path d="M70,60 L130,60 L140,80 L140,160 L60,160 L60,80 Z" fill="#FFFFFF" />
+                    <path d="M70,60 L90,40 L110,40 L130,60" fill="#FFFFFF" stroke="#FFB6C1" stroke-width="2" />
+                    <path d="M90,40 L90,60" stroke="#FFB6C1" stroke-width="2" />
+                    <path d="M110,40 L110,60" stroke="#FFB6C1" stroke-width="2" />
+                </svg>`,
+                description: "A cozy and cute pastel pink sweater perfect for chilly days. Made with soft cotton blend material for maximum comfort.",
+                rating: 4.5,
+                reviews: [
+                    { username: "PastelLover", rating: 5, text: "This sweater is so cute and comfy! I love it!" },
+                    { username: "FashionGirl", rating: 4, text: "Great quality and the color is perfect. Runs a bit large though." }
+                ]
+            },
+            {
+                id: 2,
+                name: "Kawaii Stationery Set",
+                price: 24.99,
+                category: "stationery",
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="w-full h-full">
+                    <rect width="200" height="200" fill="#E6E6FA" />
+                    <rect x="40" y="60" width="120" height="80" rx="5" fill="#FFFFFF" stroke="#CCCCFF" stroke-width="2" />
+                    <rect x="50" y="70" width="20" height="60" fill="#FFD1DC" />
+                    <rect x="80" y="70" width="20" height="60" fill="#BFEFFF" />
+                    <rect x="110" y="70" width="20" height="60" fill="#CCFFCC" />
+                    <circle cx="140" cy="80" r="10" fill="#FFFACD" />
+                    <circle cx="140" cy="110" r="10" fill="#FFDAB9" />
+                </svg>`,
+                description: "Adorable stationery set including pastel pens, sticky notes, washi tape, and cute animal-shaped paper clips.",
+                rating: 5,
+                reviews: [
+                    { username: "StationeryAddict", rating: 5, text: "This set is everything I dreamed of! So cute!" },
+                    { username: "PlannerGirl", rating: 5, text: "The quality is amazing and the designs are adorable." }
+                ]
+            },
+            {
+                id: 3,
+                name: "Cloud-Shaped Pillow",
+                price: 29.99,
+                category: "home-decor",
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="w-full h-full">
+                    <rect width="200" height="200" fill="#BFEFFF" />
+                    <path d="M60,100 Q70,70 100,80 Q130,60 150,90 Q170,110 140,120 Q150,140 120,130 Q100,150 80,130 Q50,140 60,100" fill="#FFFFFF" stroke="#E6E6FA" stroke-width="2" />
+                </svg>`,
+                description: "Soft and fluffy cloud-shaped pillow in pastel blue. Perfect for adding a dreamy touch to your bedroom or living space.",
+                rating: 4.8,
+                reviews: [
+                    { username: "CloudDreamer", rating: 5, text: "This pillow is so soft and looks exactly like the picture!" },
+                    { username: "CozyHome", rating: 4, text: "Love the design, wish it was a bit bigger though." }
+                ]
+            },
+            {
+                id: 4,
+                name: "Pastel Hair Clips Set",
+                price: 12.99,
+                category: "accessories",
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="w-full h-full">
+                    <rect width="200" height="200" fill="#FFDAB9" />
+                    <path d="M50,80 L80,80 L80,90 L50,90 Z" fill="#FFD1DC" />
+                    <path d="M90,80 L120,80 L120,90 L90,90 Z" fill="#BFEFFF" />
+                    <path d="M130,80 L160,80 L160,90 L130,90 Z" fill="#CCFFCC" />
+                    <path d="M50,110 L80,110 L80,120 L50,120 Z" fill="#E6E6FA" />
+                    <path d="M90,110 L120,110 L120,120 L90,120 Z" fill="#FFFACD" />
+                    <path d="M130,110 L160,110 L160,120 L130,120 Z" fill="#FFB6C1" />
+                </svg>`,
+                description: "Set of 6 pastel-colored hair clips in different shapes including stars, hearts, and flowers.",
+                rating: 4.2,
+                reviews: [
+                    { username: "HairStyle101", rating: 4, text: "These clips are so cute! They hold my hair well." },
+                    { username: "PastelPrincess", rating: 5, text: "Perfect addition to my pastel accessories collection!" }
+                ]
+            },
+            {
+                id: 5,
+                name: "Rainbow Cake Notebook",
+                price: 9.99,
+                category: "stationery",
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="w-full h-full">
+                    <rect width="200" height="200" fill="#FFFACD" />
+                    <rect x="50" y="50" width="100" height="120" rx="5" fill="#FFFFFF" stroke="#FFD1DC" stroke-width="2" />
+                    <rect x="50" y="50" width="100" height="20" fill="#FFD1DC" />
+                    <rect x="50" y="70" width="100" height="20" fill="#FFDAB9" />
+                    <rect x="50" y="90" width="100" height="20" fill="#FFFACD" />
+                    <rect x="50" y="110" width="100" height="20" fill="#CCFFCC" />
+                    <rect x="50" y="130" width="100" height="20" fill="#BFEFFF" />
+                    <rect x="50" y="150" width="100" height="20" fill="#E6E6FA" />
+                    <circle cx="100" cy="40" r="10" fill="#FFFFFF" stroke="#FFD1DC" stroke-width="2" />
+                </svg>`,
+                description: "Cute notebook with a rainbow cake design cover. 120 pages of high-quality lined paper.",
+                rating: 4.7,
+                reviews: [
+                    { username: "NoteTaker", rating: 5, text: "This notebook is so cute! The paper quality is excellent." },
+                    { username: "ArtStudent", rating: 4, text: "Love the design, perfect for my class notes." }
+                ]
+            },
+            {
+                id: 6,
+                name: "Pastel Macaron Candles",
+                price: 19.99,
+                category: "home-decor",
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="w-full h-full">
+                    <rect width="200" height="200" fill="#CCFFCC" />
+                    <ellipse cx="70" cy="80" rx="20" ry="10" fill="#FFD1DC" />
+                    <ellipse cx="70" cy="90" rx="20" ry="10" fill="#FFDAB9" />
+                    <ellipse cx="130" cy="80" rx="20" ry="10" fill="#BFEFFF" />
+                    <ellipse cx="130" cy="90" rx="20" ry="10" fill="#E6E6FA" />
+                    <ellipse cx="100" cy="120" rx="20" ry="10" fill="#FFFACD" />
+                    <ellipse cx="100" cy="130" rx="20" ry="10" fill="#CCFFCC" />
+                </svg>`,
+                description: "Set of 6 scented candles that look like macarons in various pastel colors. Each has a different sweet scent.",
+                rating: 4.9,
+                reviews: [
+                    { username: "CandleLover", rating: 5, text: "These candles are not only cute but smell amazing!" },
+                    { username: "HomeDecor", rating: 5, text: "Perfect decoration for my vanity table. Love them!" }
+                ]
+            },
+            {
+                id: 7,
+                name: "Pastel Pleated Skirt",
+                price: 34.99,
+                category: "clothing",
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="w-full h-full">
+                    <rect width="200" height="200" fill="#E6E6FA" />
+                    <path d="M70,60 L130,60 L140,160 L60,160 Z" fill="#FFFFFF" />
+                    <path d="M70,60 L130,60 L140,160 L60,160 Z" fill="none" stroke="#E6E6FA" stroke-width="2" />
+                    <line x1="60" y1="80" x2="140" y2="80" stroke="#E6E6FA" stroke-width="1" />
+                    <line x1="60" y1="100" x2="140" y2="100" stroke="#E6E6FA" stroke-width="1" />
+                    <line x1="60" y1="120" x2="140" y2="120" stroke="#E6E6FA" stroke-width="1" />
+                    <line x1="60" y1="140" x2="140" y2="140" stroke="#E6E6FA" stroke-width="1" />
+                </svg>`,
+                description: "Elegant pleated skirt in pastel lavender. High-waisted design with a flowy silhouette.",
+                rating: 4.6,
+                reviews: [
+                    { username: "FashionForward", rating: 5, text: "This skirt is so pretty and the material is great quality!" },
+                    { username: "StyleQueen", rating: 4, text: "Love the color and fit. Gets a bit wrinkled easily though." }
+                ]
+            },
+            {
+                id: 8,
+                name: "Bunny Ear Headband",
+                price: 15.99,
+                category: "accessories",
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="w-full h-full">
+                    <rect width="200" height="200" fill="#FFD1DC" />
+                    <path d="M60,120 C60,80 100,80 100,120" fill="none" stroke="#FFFFFF" stroke-width="4" />
+                    <path d="M140,120 C140,80 100,80 100,120" fill="none" stroke="#FFFFFF" stroke-width="4" />
+                    <ellipse cx="70" cy="90" rx="10" ry="20" fill="#FFDAB9" />
+                    <ellipse cx="130" cy="90" rx="10" ry="20" fill="#FFDAB9" />
+                </svg>`,
+                description: "Cute bunny ear headband in pastel pink with soft plush material. Perfect for parties or cosplay.",
+                rating: 4.3,
+                reviews: [
+                    { username: "CosplayFan", rating: 4, text: "These ears are so cute! They stay on well too." },
+                    { username: "PartyGirl", rating: 5, text: "Got so many compliments when I wore these to a party!" }
+                ]
+            },
+            {
+                id: 9,
+                name: "Pastel Washi Tape Set",
+                price: 14.99,
+                category: "stationery",
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="w-full h-full">
+                    <rect width="200" height="200" fill="#FFFFFF" />
+                    <circle cx="100" cy="100" r="60" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="1" />
+                    <path d="M100,40 A60,60 0 0,1 152,70 L100,100 Z" fill="#FFD1DC" />
+                    <path d="M152,70 A60,60 0 0,1 152,130 L100,100 Z" fill="#BFEFFF" />
+                    <path d="M152,130 A60,60 0 0,1 100,160 L100,100 Z" fill="#CCFFCC" />
+                    <path d="M100,160 A60,60 0 0,1 48,130 L100,100 Z" fill="#FFFACD" />
+                    <path d="M48,130 A60,60 0 0,1 48,70 L100,100 Z" fill="#E6E6FA" />
+                    <path d="M48,70 A60,60 0 0,1 100,40 L100,100 Z" fill="#FFDAB9" />
+                    <circle cx="100" cy="100" r="20" fill="#FFFFFF" />
+                </svg>`,
+                description: "Set of 10 pastel-colored washi tapes with various patterns including stripes, dots, and floral designs.",
+                rating: 4.8,
+                reviews: [
+                    { username: "CraftyCreator", rating: 5, text: "These washi tapes are beautiful and great quality!" },
+                    { username: "JournalLover", rating: 5, text: "Perfect for my bullet journal. The colors are so pretty!" }
+                ]
+            },
+            {
+                id: 10,
+                name: "Pastel String Lights",
+                price: 22.99,
+                category: "home-decor",
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="w-full h-full">
+                    <rect width="200" height="200" fill="#333333" />
+                    <line x1="20" y1="60" x2="180" y2="60" stroke="#666666" stroke-width="2" />
+                    <circle cx="40" cy="80" r="10" fill="#FFD1DC" />
+                    <circle cx="70" cy="100" r="10" fill="#BFEFFF" />
+                    <circle cx="100" cy="80" r="10" fill="#CCFFCC" />
+                    <circle cx="130" cy="100" r="10" fill="#FFFACD" />
+                    <circle cx="160" cy="80" r="10" fill="#E6E6FA" />
+                    <line x1="40" y1="60" x2="40" y2="70" stroke="#666666" stroke-width="1" />
+                    <line x1="70" y1="60" x2="70" y2="90" stroke="#666666" stroke-width="1" />
+                    <line x1="100" y1="60" x2="100" y2="70" stroke="#666666" stroke-width="1" />
+                    <line x1="130" y1="60" x2="130" y2="90" stroke="#666666" stroke-width="1" />
+                    <line x1="160" y1="60" x2="160" y2="70" stroke="#666666" stroke-width="1" />
+                </svg>`,
+                description: "String lights with pastel-colored bulbs. Battery-operated and perfect for bedroom decoration.",
+                rating: 4.5,
+                reviews: [
+                    { username: "CozyRooms", rating: 4, text: "These lights add such a nice ambiance to my room!" },
+                    { username: "NightOwl", rating: 5, text: "Love how these look at night. The pastel colors are perfect." }
+                ]
+            },
+            {
+                id: 11,
+                name: "Pastel Hoodie",
+                price: 44.99,
+                category: "clothing",
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="w-full h-full">
+                    <rect width="200" height="200" fill="#CCFFCC" />
+                    <path d="M60,50 L140,50 L140,150 L60,150 Z" fill="#FFFFFF" />
+                    <path d="M60,50 L80,30 L120,30 L140,50" fill="#FFFFFF" />
+                    <path d="M80,30 L80,50" stroke="#CCFFCC" stroke-width="2" />
+                    <path d="M120,30 L120,50" stroke="#CCFFCC" stroke-width="2" />
+                    <path d="M90,50 L110,50 L110,70 L90,70 Z" fill="#CCFFCC" />
+                </svg>`,
+                description: "Comfortable oversized hoodie in pastel mint green. Made with soft cotton blend material.",
+                rating: 4.7,
+                reviews: [
+                    { username: "ComfyClothes", rating: 5, text: "This hoodie is so comfortable and cute!" },
+                    { username: "CasualStyle", rating: 4, text: "Love the color and it's super soft. Runs a bit large." }
+                ]
+            },
+            {
+                id: 12,
+                name: "Star-Shaped Bag",
+                price: 36.99,
+                category: "accessories",
+                image: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="w-full h-full">
+                    <rect width="200" height="200" fill="#FFFACD" />
+                    <path d="M100,40 L115,85 L165,85 L125,110 L140,160 L100,130 L60,160 L75,110 L35,85 L85,85 Z" fill="#FFFFFF" stroke="#FFFACD" stroke-width="2" />
+                    <circle cx="100" cy="100" r="10" fill="#FFFACD" />
+                </svg>`,
+                description: "Unique star-shaped crossbody bag in pastel yellow. Small but spacious with multiple compartments.",
+                rating: 4.4,
+                reviews: [
+                    { username: "BagCollector", rating: 4, text: "This bag is so unique and cute! Gets a lot of attention." },
+                    { username: "FashionForward", rating: 5, text: "Perfect size for essentials and the design is adorable!" }
+                ]
+            }
+        ];
+
+        // DOM Elements
+        const pages = document.querySelectorAll('.page');
+        const productsGrid = document.getElementById('products-grid');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        const priceRange = document.getElementById('price-range');
+        const priceValue = document.getElementById('price-value');
+        const sortSelect = document.getElementById('sort-select');
+        const cartBadge = document.getElementById('cart-badge');
+        const wishlistBadge = document.getElementById('wishlist-badge');
+        const loginBtn = document.getElementById('login-btn');
+        const loginModal = document.getElementById('login-modal');
+        const closeLoginModal = document.getElementById('close-login-modal');
+        const loginTabBtn = document.getElementById('login-tab-btn');
+        const signupTabBtn = document.getElementById('signup-tab-btn');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const loginSubmit = document.getElementById('login-submit');
+        const signupSubmit = document.getElementById('signup-submit');
+        const userSection = document.getElementById('user-section');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const usernameDisplay = document.getElementById('username-display');
+        const logoutBtn = document.getElementById('logout-btn');
+        const cartBtn = document.getElementById('cart-btn');
+        const wishlistBtn = document.getElementById('wishlist-btn');
+        const backToShop = document.getElementById('back-to-shop');
+        const shopNowBtn = document.getElementById('shop-now-btn');
+        const continueShoppingBtn = document.getElementById('continue-shopping');
+        const continueShoppingWishlistBtn = document.getElementById('continue-shopping-wishlist');
+        const continueShoppingConfirmationBtn = document.getElementById('continue-shopping-confirmation');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        const placeOrderBtn = document.getElementById('place-order-btn');
+        const printOrderBtn = document.getElementById('print-order');
+        const downloadPdfBtn = document.getElementById('download-pdf');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const dashboardTabs = document.querySelectorAll('.dashboard-tab');
+        const saveProfileBtn = document.getElementById('save-profile');
+        const startShoppingOrdersBtn = document.getElementById('start-shopping-orders');
+        const startShoppingWishlistBtn = document.getElementById('start-shopping-wishlist');
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+
+        // State Management
+        let currentUser = null;
+        let currentPage = 'home-page';
+        let currentProductId = null;
+        let currentCategory = 'all';
+        let currentMaxPrice = 100;
+        let currentSort = 'name-asc';
+        let selectedRating = 0;
+
+        // Initialize localStorage if needed
+        function initializeLocalStorage() {
+            if (!localStorage.getItem('users')) {
+                localStorage.setItem('users', JSON.stringify([]));
+            }
+            if (!localStorage.getItem('orders')) {
+                localStorage.setItem('orders', JSON.stringify([]));
+            }
+            if (!localStorage.getItem('reviews')) {
+                localStorage.setItem('reviews', JSON.stringify({}));
+            }
+        }
+
+        // Show notification
+        function showNotification(message) {
+            notificationMessage.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Navigation Functions
+        function showPage(pageId) {
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            currentPage = pageId;
+            window.scrollTo(0, 0);
+        }
+
+        // User Authentication
+        function login(username, password) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                updateUserUI();
+                closeLoginModal();
+                showNotification(`Welcome back, ${username}! 🌸`);
+                return true;
+            }
+            return false;
+        }
+
+        function signup(username, email, password) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            
+            if (users.some(u => u.username === username)) {
+                return false;
+            }
+            
+            const newUser = {
+                username,
+                email,
+                password,
+                cart: [],
+                wishlist: [],
+                orders: []
+            };
+            
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            currentUser = newUser;
+            updateUserUI();
+            closeLoginModal();
+            showNotification(`Welcome to PastelShop, ${username}! 🌸`);
+            return true;
+        }
+
+        function logout() {
+            currentUser = null;
+            updateUserUI();
+            showPage('home-page');
+            showNotification('You have been logged out. Come back soon! 💖');
+        }
+
+        function updateUserUI() {
+            if (currentUser) {
+                userSection.innerHTML = `
+                    <div class="flex items-center">
+                        <button id="dashboard-btn" class="text-gray-600 hover:text-pink-500 transition mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </button>
+                        <span class="text-gray-700">${currentUser.username}</span>
+                    </div>
+                `;
+                
+                document.getElementById('dashboard-btn').addEventListener('click', () => {
+                    showPage('dashboard-page');
+                    updateDashboard();
+                });
+                
+                welcomeMessage.classList.remove('hidden');
+                usernameDisplay.textContent = currentUser.username;
+                
+                updateCartBadge();
+                updateWishlistBadge();
+            } else {
+                userSection.innerHTML = `
+                    <button id="login-btn" class="bg-pastel-pink hover:bg-pink-400 text-white px-4 py-2 rounded-full transition">Login</button>
+                `;
+                
+                document.getElementById('login-btn').addEventListener('click', openLoginModal);
+                
+                welcomeMessage.classList.add('hidden');
+                
+                cartBadge.classList.add('hidden');
+                wishlistBadge.classList.add('hidden');
+            }
+        }
+
+        // Cart Functions
+        function addToCart(productId, quantity = 1) {
+            if (!currentUser) {
+                openLoginModal();
+                return;
+            }
+            
+            const product = products.find(p => p.id === productId);
+            
+            if (!product) return;
+            
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userIndex = users.findIndex(u => u.username === currentUser.username);
+            
+            if (userIndex === -1) return;
+            
+            const cartItemIndex = users[userIndex].cart.findIndex(item => item.productId === productId);
+            
+            if (cartItemIndex !== -1) {
+                users[userIndex].cart[cartItemIndex].quantity += quantity;
+            } else {
+                users[userIndex].cart.push({
+                    productId,
+                    quantity
+                });
+            }
+            
+            localStorage.setItem('users', JSON.stringify(users));
+            currentUser = users[userIndex];
+            
+            updateCartBadge();
+            showNotification(`${product.name} added to cart! 🛒`);
+        }
+
+        function removeFromCart(productId) {
+            if (!currentUser) return;
+            
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userIndex = users.findIndex(u => u.username === currentUser.username);
+            
+            if (userIndex === -1) return;
+            
+            users[userIndex].cart = users[userIndex].cart.filter(item => item.productId !== productId);
+            
+            localStorage.setItem('users', JSON.stringify(users));
+            currentUser = users[userIndex];
+            
+            updateCartBadge();
+            updateCartPage();
+        }
+
+        function updateCartQuantity(productId, quantity) {
+            if (!currentUser) return;
+            
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userIndex = users.findIndex(u => u.username === currentUser.username);
+            
+            if (userIndex === -1) return;
+            
+            const cartItemIndex = users[userIndex].cart.findIndex(item => item.productId === productId);
+            
+            if (cartItemIndex !== -1) {
+                users[userIndex].cart[cartItemIndex].quantity = quantity;
+                
+                localStorage.setItem('users', JSON.stringify(users));
+                currentUser = users[userIndex];
+                
+                updateCartBadge();
+                updateCartPage();
+            }
+        }
+
+        function updateCartBadge() {
+            if (currentUser && currentUser.cart.length > 0) {
+                const totalItems = currentUser.cart.reduce((total, item) => total + item.quantity, 0);
+                cartBadge.textContent = totalItems;
+                cartBadge.classList.remove('hidden');
+            } else {
+                cartBadge.classList.add('hidden');
+            }
+        }
+
+        function updateCartPage() {
+            if (!currentUser || currentUser.cart.length === 0) {
+                document.getElementById('cart-items').classList.add('hidden');
+                document.getElementById('empty-cart-message').classList.remove('hidden');
+                document.getElementById('order-summary').classList.add('hidden');
+                return;
+            }
+            
+            document.getElementById('cart-items').classList.remove('hidden');
+            document.getElementById('empty-cart-message').classList.add('hidden');
+            document.getElementById('order-summary').classList.remove('hidden');
+            
+            const cartItemsContainer = document.getElementById('cart-items');
+            cartItemsContainer.innerHTML = '';
+            
+            let subtotal = 0;
+            
+            currentUser.cart.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                
+                if (!product) return;
+                
+                const itemTotal = product.price * item.quantity;
+                subtotal += itemTotal;
+                
+                const cartItemElement = document.createElement('div');
+                cartItemElement.className = 'flex items-center bg-white rounded-xl shadow-md p-4';
+                cartItemElement.innerHTML = `
+                    <div class="w-20 h-20 mr-4">
+                        ${product.image}
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-medium">${product.name}</h3>
+                        <p class="text-gray-500">$${product.price.toFixed(2)}</p>
+                    </div>
+                    <div class="flex items-center mr-4">
+                        <button class="decrease-cart-qty px-2 py-1 text-gray-600 hover:bg-gray-100 rounded-l-lg" data-id="${product.id}">-</button>
+                        <input type="number" min="1" value="${item.quantity}" class="cart-qty w-12 text-center border-none focus:outline-none" data-id="${product.id}">
+                        <button class="increase-cart-qty px-2 py-1 text-gray-600 hover:bg-gray-100 rounded-r-lg" data-id="${product.id}">+</button>
+                    </div>
+                    <div class="text-right mr-4">
+                        <p class="font-medium">$${itemTotal.toFixed(2)}</p>
+                    </div>
+                    <button class="remove-from-cart text-gray-400 hover:text-red-500" data-id="${product.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                `;
+                
+                cartItemsContainer.appendChild(cartItemElement);
+            });
+            
+            // Add event listeners to cart item buttons
+            document.querySelectorAll('.decrease-cart-qty').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const productId = parseInt(btn.dataset.id);
+                    const input = document.querySelector(`.cart-qty[data-id="${productId}"]`);
+                    let quantity = parseInt(input.value);
+                    if (quantity > 1) {
+                        quantity--;
+                        input.value = quantity;
+                        updateCartQuantity(productId, quantity);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.increase-cart-qty').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const productId = parseInt(btn.dataset.id);
+                    const input = document.querySelector(`.cart-qty[data-id="${productId}"]`);
+                    let quantity = parseInt(input.value);
+                    quantity++;
+                    input.value = quantity;
+                    updateCartQuantity(productId, quantity);
+                });
+            });
+            
+            document.querySelectorAll('.cart-qty').forEach(input => {
+                input.addEventListener('change', () => {
+                    const productId = parseInt(input.dataset.id);
+                    let quantity = parseInt(input.value);
+                    if (quantity < 1) {
+                        quantity = 1;
+                        input.value = quantity;
+                    }
+                    updateCartQuantity(productId, quantity);
+                });
+            });
+            
+            document.querySelectorAll('.remove-from-cart').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const productId = parseInt(btn.dataset.id);
+                    removeFromCart(productId);
+                });
+            });
+            
+            // Update order summary
+            const tax = subtotal * 0.1;
+            const shipping = subtotal > 0 ? 5 : 0;
+            const total = subtotal + tax + shipping;
+            
+            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('shipping').textContent = subtotal > 0 ? `$${shipping.toFixed(2)}` : '$0.00';
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        // Wishlist Functions
+        function toggleWishlist(productId) {
+            if (!currentUser) {
+                openLoginModal();
+                return;
+            }
+            
+            const product = products.find(p => p.id === productId);
+            
+            if (!product) return;
+            
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userIndex = users.findIndex(u => u.username === currentUser.username);
+            
+            if (userIndex === -1) return;
+            
+            const wishlistIndex = users[userIndex].wishlist.indexOf(productId);
+            
+            if (wishlistIndex !== -1) {
+                users[userIndex].wishlist.splice(wishlistIndex, 1);
+                showNotification(`${product.name} removed from wishlist`);
+            } else {
+                users[userIndex].wishlist.push(productId);
+                showNotification(`${product.name} added to wishlist! 💖`);
+            }
+            
+            localStorage.setItem('users', JSON.stringify(users));
+            currentUser = users[userIndex];
+            
+            updateWishlistBadge();
+            
+            // Update heart button if on product detail page
+            if (currentPage === 'product-detail-page' && currentProductId === productId) {
+                const heartBtn = document.getElementById('add-to-wishlist-detail');
+                if (isInWishlist(productId)) {
+                    heartBtn.classList.add('active');
+                } else {
+                    heartBtn.classList.remove('active');
+                }
+            }
+            
+            // Update wishlist page if currently viewing it
+            if (currentPage === 'wishlist-page') {
+                updateWishlistPage();
+            }
+            
+            // Update dashboard wishlist tab if currently viewing it
+            if (currentPage === 'dashboard-page') {
+                updateDashboardWishlist();
+            }
+        }
+
+        function isInWishlist(productId) {
+            return currentUser && currentUser.wishlist.includes(productId);
+        }
+
+        function updateWishlistBadge() {
+            if (currentUser && currentUser.wishlist.length > 0) {
+                wishlistBadge.textContent = currentUser.wishlist.length;
+                wishlistBadge.classList.remove('hidden');
+            } else {
+                wishlistBadge.classList.add('hidden');
+            }
+        }
+
+        function updateWishlistPage() {
+            if (!currentUser || currentUser.wishlist.length === 0) {
+                document.getElementById('wishlist-items').classList.add('hidden');
+                document.getElementById('empty-wishlist-message').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('wishlist-items').classList.remove('hidden');
+            document.getElementById('empty-wishlist-message').classList.add('hidden');
+            
+            const wishlistItemsContainer = document.getElementById('wishlist-items');
+            wishlistItemsContainer.innerHTML = '';
+            
+            currentUser.wishlist.forEach(productId => {
+                const product = products.find(p => p.id === productId);
+                
+                if (!product) return;
+                
+                const wishlistItemElement = document.createElement('div');
+                wishlistItemElement.className = 'product-card bg-white rounded-xl shadow-md overflow-hidden';
+                wishlistItemElement.innerHTML = `
+                    <div class="h-48 p-4">
+                        ${product.image}
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-medium mb-2">${product.name}</h3>
+                        <p class="text-pink-500 font-bold mb-4">$${product.price.toFixed(2)}</p>
+                        <div class="flex justify-between">
+                            <button class="add-to-cart-wishlist bg-pastel-pink hover:bg-pink-400 text-white px-4 py-2 rounded-full transition" data-id="${product.id}">
+                                Add to Cart
+                            </button>
+                            <button class="remove-from-wishlist text-gray-400 hover:text-red-500" data-id="${product.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                wishlistItemsContainer.appendChild(wishlistItemElement);
+            });
+            
+            // Add event listeners to wishlist item buttons
+            document.querySelectorAll('.add-to-cart-wishlist').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const productId = parseInt(btn.dataset.id);
+                    addToCart(productId);
+                });
+            });
+            
+            document.querySelectorAll('.remove-from-wishlist').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const productId = parseInt(btn.dataset.id);
+                    toggleWishlist(productId);
+                });
+            });
+        }
+
+        // Product Functions
+        function renderProducts() {
+            productsGrid.innerHTML = '';
+            
+            let filteredProducts = products;
+            
+            // Filter by category
+            if (currentCategory !== 'all') {
+                filteredProducts = filteredProducts.filter(product => product.category === currentCategory);
+            }
+            
+            // Filter by price
+            filteredProducts = filteredProducts.filter(product => product.price <= currentMaxPrice);
+            
+            // Sort products
+            switch (currentSort) {
+                case 'name-asc':
+                    filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'name-desc':
+                    filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
+                    break;
+                case 'price-asc':
+                    filteredProducts.sort((a, b) => a.price - b.price);
+                    break;
+                case 'price-desc':
+                    filteredProducts.sort((a, b) => b.price - a.price);
+                    break;
+            }
+            
+            filteredProducts.forEach(product => {
+                const productElement = document.createElement('div');
+                productElement.className = 'product-card bg-white rounded-xl shadow-md overflow-hidden';
+                
+                const isWishlisted = currentUser && isInWishlist(product.id);
+                
+                productElement.innerHTML = `
+                    <div class="h-48 p-4 cursor-pointer product-image" data-id="${product.id}">
+                        ${product.image}
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-medium cursor-pointer product-title" data-id="${product.id}">${product.name}</h3>
+                            <button class="heart-btn ${isWishlisted ? 'active' : ''}" data-id="${product.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="${isWishlisted ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <div class="flex text-yellow-400 mr-2">
+                                ${getStarRating(product.rating)}
+                            </div>
+                            <span class="text-gray-500 text-sm">(${product.reviews.length})</span>
+                        </div>
+                        <p class="text-pink-500 font-bold mb-4">$${product.price.toFixed(2)}</p>
+                        <button class="add-to-cart w-full bg-pastel-pink hover:bg-pink-400 text-white py-2 rounded-full transition" data-id="${product.id}">
+                            Add to Cart
+                        </button>
+                    </div>
+                `;
+                
+                productsGrid.appendChild(productElement);
+            });
+            
+            // Add event listeners to product elements
+            document.querySelectorAll('.product-image, .product-title').forEach(element => {
+                element.addEventListener('click', () => {
+                    const productId = parseInt(element.dataset.id);
+                    showProductDetail(productId);
+                });
+            });
+            
+            document.querySelectorAll('.heart-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const productId = parseInt(btn.dataset.id);
+                    toggleWishlist(productId);
+                    
+                    // Update heart button appearance
+                    if (isInWishlist(productId)) {
+                        btn.classList.add('active');
+                        btn.querySelector('svg').setAttribute('fill', 'currentColor');
+                    } else {
+                        btn.classList.remove('active');
+                        btn.querySelector('svg').setAttribute('fill', 'none');
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.add-to-cart').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const productId = parseInt(btn.dataset.id);
+                    addToCart(productId);
+                });
+            });
+        }
+
+        function getStarRating(rating) {
+            let stars = '';
+            const fullStars = Math.floor(rating);
+            const halfStar = rating % 1 >= 0.5;
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<span class="text-yellow-400">★</span>';
+            }
+            
+            if (halfStar) {
+                stars += '<span class="text-yellow-400">★</span>';
+            }
+            
+            const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<span class="text-gray-300">★</span>';
+            }
+            
+            return stars;
+        }
+
+        function showProductDetail(productId) {
+            const product = products.find(p => p.id === productId);
+            
+            if (!product) return;
+            
+            currentProductId = productId;
+            
+            document.getElementById('product-title').textContent = product.name;
+            document.getElementById('product-price').textContent = `$${product.price.toFixed(2)}`;
+            document.getElementById('product-description').textContent = product.description;
+            document.getElementById('product-category').textContent = product.category.replace('-', ' ');
+            document.getElementById('product-image').innerHTML = product.image;
+            document.getElementById('product-rating').innerHTML = getStarRating(product.rating);
+            document.getElementById('review-count').textContent = `(${product.reviews.length} reviews)`;
+            document.getElementById('product-qty').value = 1;
+            
+            // Update wishlist heart button
+            const heartBtn = document.getElementById('add-to-wishlist-detail');
+            if (currentUser && isInWishlist(productId)) {
+                heartBtn.classList.add('active');
+            } else {
+                heartBtn.classList.remove('active');
+            }
+            
+            // Load reviews
+            loadProductReviews(productId);
+            
+            showPage('product-detail-page');
+        }
+
+        function loadProductReviews(productId) {
+            const product = products.find(p => p.id === productId);
+            
+            if (!product) return;
+            
+            const reviewsList = document.getElementById('reviews-list');
+            reviewsList.innerHTML = '';
+            
+            // Get additional reviews from localStorage
+            const allReviews = JSON.parse(localStorage.getItem('reviews')) || {};
+            const productReviews = allReviews[productId] || [];
+            
+            // Combine default reviews with user-submitted reviews
+            const combinedReviews = [...product.reviews, ...productReviews];
+            
+            if (combinedReviews.length === 0) {
+                reviewsList.innerHTML = '<p class="text-gray-500 text-center py-4">No reviews yet. Be the first to review this product!</p>';
+                return;
+            }
+            
+            combinedReviews.forEach(review => {
+                const reviewElement = document.createElement('div');
+                reviewElement.className = 'bg-gray-50 rounded-lg p-4';
+                reviewElement.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-medium">${review.username}</h4>
+                            <div class="flex text-yellow-400">
+                                ${getStarRating(review.rating)}
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mt-2">${review.text}</p>
+                `;
+                
+                reviewsList.appendChild(reviewElement);
+            });
+            
+            // Reset star rating in review form
+            document.querySelectorAll('.star').forEach(star => {
+                star.classList.remove('active');
+                star.style.color = '#D1D5DB';
+            });
+            selectedRating = 0;
+        }
+
+        function submitReview(productId, rating, text) {
+            if (!currentUser) {
+                openLoginModal();
+                return;
+            }
+            
+            if (rating === 0) {
+                showNotification('Please select a rating');
+                return;
+            }
+            
+            if (!text.trim()) {
+                showNotification('Please write a review');
+                return;
+            }
+            
+            const review = {
+                username: currentUser.username,
+                rating,
+                text
+            };
+            
+            // Save to localStorage
+            const allReviews = JSON.parse(localStorage.getItem('reviews')) || {};
+            if (!allReviews[productId]) {
+                allReviews[productId] = [];
+            }
+            allReviews[productId].push(review);
+            localStorage.setItem('reviews', JSON.stringify(allReviews));
+            
+            // Reload reviews
+            loadProductReviews(productId);
+            
+            // Reset form
+            document.getElementById('review-text').value = '';
+            document.querySelectorAll('.star').forEach(star => {
+                star.classList.remove('active');
+                star.style.color = '#D1D5DB';
+            });
+            selectedRating = 0;
+            
+            showNotification('Review submitted successfully! 🌟');
+        }
+
+        // Checkout Functions
+        function updateCheckoutPage() {
+            if (!currentUser || currentUser.cart.length === 0) {
+                showPage('cart-page');
+                return;
+            }
+            
+            const checkoutItemsContainer = document.getElementById('checkout-items');
+            checkoutItemsContainer.innerHTML = '';
+            
+            let subtotal = 0;
+            
+            currentUser.cart.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                
+                if (!product) return;
+                
+                const itemTotal = product.price * item.quantity;
+                subtotal += itemTotal;
+                
+                const checkoutItemElement = document.createElement('div');
+                checkoutItemElement.className = 'flex items-center';
+                checkoutItemElement.innerHTML = `
+                    <div class="w-12 h-12 mr-3">
+                        ${product.image}
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-medium">${product.name}</h4>
+                        <p class="text-gray-500 text-sm">Qty: ${item.quantity}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-medium">$${itemTotal.toFixed(2)}</p>
+                    </div>
+                `;
+                
+                checkoutItemsContainer.appendChild(checkoutItemElement);
+            });
+            
+            // Update order summary
+            const tax = subtotal * 0.1;
+            const shipping = 5;
+            const total = subtotal + tax + shipping;
+            
+            document.getElementById('checkout-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('checkout-tax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('checkout-shipping').textContent = `$${shipping.toFixed(2)}`;
+            document.getElementById('checkout-total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        function placeOrder() {
+            if (!currentUser || currentUser.cart.length === 0) {
+                return;
+            }
+            
+            // Get form values
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const city = document.getElementById('city').value;
+            const zip = document.getElementById('zip').value;
+            
+            // Simple validation
+            if (!firstName || !lastName || !email || !phone || !address || !city || !zip) {
+                showNotification('Please fill in all required fields');
+                return;
+            }
+            
+            // Calculate order total
+            let subtotal = 0;
+            const orderItems = currentUser.cart.map(item => {
+                const product = products.find(p => p.id === item.productId);
+                const itemTotal = product.price * item.quantity;
+                subtotal += itemTotal;
+                
+                return {
+                    productId: item.productId,
+                    name: product.name,
+                    price: product.price,
+                    quantity: item.quantity,
+                    total: itemTotal
+                };
+            });
+            
+            const tax = subtotal * 0.1;
+            const shipping = 5;
+            const total = subtotal + tax + shipping;
+            
+            // Create order object
+            const order = {
+                id: generateOrderId(),
+                date: new Date().toISOString(),
+                customer: {
+                    firstName,
+                    lastName,
+                    email,
+                    phone,
+                    address,
+                    city,
+                    zip
+                },
+                items: orderItems,
+                subtotal,
+                tax,
+                shipping,
+                total
+            };
+            
+            // Save order to localStorage
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userIndex = users.findIndex(u => u.username === currentUser.username);
+            
+            if (userIndex !== -1) {
+                users[userIndex].orders.push(order);
+                users[userIndex].cart = [];
+                
+                localStorage.setItem('users', JSON.stringify(users));
+                currentUser = users[userIndex];
+                
+                updateCartBadge();
+                
+                // Show order confirmation
+                showOrderConfirmation(order);
+            }
+        }
+
+        function generateOrderId() {
+            return 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        function showOrderConfirmation(order) {
+            document.getElementById('order-number').textContent = order.id;
+            
+            const confirmationItemsContainer = document.getElementById('confirmation-items');
+            confirmationItemsContainer.innerHTML = '';
+            
+            order.items.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                
+                if (!product) return;
+                
+                const confirmationItemElement = document.createElement('div');
+                confirmationItemElement.className = 'flex items-center';
+                confirmationItemElement.innerHTML = `
+                    <div class="w-12 h-12 mr-3">
+                        ${product.image}
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-medium">${item.name}</h4>
+                        <p class="text-gray-500 text-sm">Qty: ${item.quantity} x $${item.price.toFixed(2)}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-medium">$${item.total.toFixed(2)}</p>
+                    </div>
+                `;
+                
+                confirmationItemsContainer.appendChild(confirmationItemElement);
+            });
+            
+            // Update order summary
+            document.getElementById('confirmation-subtotal').textContent = `$${order.subtotal.toFixed(2)}`;
+            document.getElementById('confirmation-tax').textContent = `$${order.tax.toFixed(2)}`;
+            document.getElementById('confirmation-shipping').textContent = `$${order.shipping.toFixed(2)}`;
+            document.getElementById('confirmation-total').textContent = `$${order.total.toFixed(2)}`;
+            
+            showPage('order-confirmation-page');
+            createConfetti();
+        }
+
+        function createConfetti() {
+            const confettiContainer = document.getElementById('confetti-container');
+            confettiContainer.innerHTML = '';
+            
+            const colors = ['#FFD1DC', '#BFEFFF', '#CCFFCC', '#FFFACD', '#E6E6FA', '#FFDAB9'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = `${Math.random() * 3}s`;
+                confetti.style.animationDuration = `${Math.random() * 2 + 2}s`;
+                
+                confettiContainer.appendChild(confetti);
+            }
+        }
+
+        // Dashboard Functions
+        function updateDashboard() {
+            if (!currentUser) {
+                showPage('home-page');
+                return;
+            }
+            
+            // Update user initials
+            const initials = currentUser.username.charAt(0).toUpperCase();
+            document.getElementById('user-initials').textContent = initials;
+            
+            // Update username
+            document.getElementById('dashboard-username').textContent = currentUser.username;
+            
+            // Update profile form
+            document.getElementById('profile-username').value = currentUser.username;
+            document.getElementById('profile-email').value = currentUser.email || '';
+            document.getElementById('profile-first-name').value = currentUser.firstName || '';
+            document.getElementById('profile-last-name').value = currentUser.lastName || '';
+            
+            // Update orders tab
+            updateDashboardOrders();
+            
+            // Update wishlist tab
+            updateDashboardWishlist();
+        }
+
+        function updateDashboardOrders() {
+            if (!currentUser || currentUser.orders.length === 0) {
+                document.getElementById('orders-list').classList.add('hidden');
+                document.getElementById('empty-orders-message').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('orders-list').classList.remove<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'964536bf83bd2e8d',t:'MTc1MzM3ODk0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
